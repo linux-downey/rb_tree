@@ -78,6 +78,12 @@ typedef enum
     SAME_KEY=-4,
 }err_t;
 
+typedef enum
+{
+    NOTHING,
+    DELETE_LEFT_BLACK,
+    PASS_UP,
+}del_stat_t;
 
 
 
@@ -98,8 +104,17 @@ class RB_tree:public BinaryTree<RBTreeNode>
 
         err_t check_rb_tree_balance(RBTreeNode* root);
 
-
+        RBTreeNode* delete_black_node(RBTreeNode* root,del_stat_t &stat);
+        
+        RBTreeNode* delete_min();
+        RBTreeNode* fix_left_side_shoter_case(RBTreeNode* root,del_stat_t &stat);
     private:
+        void swap_two_node(RBTreeNode* dst,RBTreeNode* src);
+        RBTreeNode* delete_less_than_two_child(RBTreeNode* node,del_stat_t &stat);
+
+        RBTreeNode* delete_min(RBTreeNode* root,del_stat_t &stat);
+        RBTreeNode* check_stat(RBTreeNode* root,del_stat_t &stat);
+
         RBTreeNode* flip(RBTreeNode* node);
         bool is_red(RBTreeNode* node);
         err_t find_all_leaves(RBTreeNode* root);
