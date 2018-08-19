@@ -53,7 +53,21 @@ RBTreeNode* RB_tree::left_local_rotation(RBTreeNode* node)
 }
 
 
+RBTreeNode* RB_tree::left_rotation_without_change_color(RBTreeNode* node)
+{
+    RBTreeNode* tmp=node->right_child;
+    node->right_child=tmp->left_child;
+    tmp->left_child=node;
+    return tmp;
+}
 
+RBTreeNode* RB_tree::right_rotation_without_change_color(RBTreeNode* node)
+{
+    RBTreeNode* tmp=node->left_child;
+    node->left_child=tmp->right_child;
+    tmp->right_child=node;
+    return tmp;
+}
 
 
 
@@ -228,14 +242,39 @@ RBTreeNode* RB_tree::delete_less_than_two_child(RBTreeNode* node,del_stat_t &sta
     return NULL;
 }
 
+
+/*插入的情况：父节点为黑，直接插入
+            父节点为红，这时候祖父肯定为黑：
+                                        如果叔叔为红，将父节点和叔叔节点变成黑，祖父节点变成红色。
+                                        如果叔叔为黑，则需要进行旋转（可能需要先局部旋转）
+//已完成
+*/
+
+
+/*删除最小值的情况：被删除节点为红节点，直接删除(因为不可能会存在子节点)
+                 被删除节点为黑节点：
+                                如果有红色子节点，用子节点代替，再删除子节点(存在右子节点，不存在左子节点，因为左子节点是最小)
+                                被删除节点没有子节点：
+                                    一、被删除节点的父节点为红色的处理，兄弟可能有红子节点或者没有，分情况讨论：   //这一情况未完成
+                                        （1）被删除节点的兄弟节点为黑色，存在左红子或右红子，但是不同时存在
+                                        （2）被删除节点的兄弟节点为黑色，同时存在左右红色子节点
+                                        （3）被删除节点的兄弟节点为黑色，没有子节点
+                                    二、被删除节点的父节点为黑色节点，分情况讨论：
+                                        （1）父亲为黑，兄弟为红，进行旋转，但是这个时候的旋转并不能达到平衡，旋转后的结果为情况一，需要再进行处理   //这一情况未完成
+                                        （2）父节点为黑，兄弟节点为黑，兄弟节点有红色子节点，需要旋转达到平衡
+                                        （3）父节点为黑，兄弟节点为黑，且兄弟节点没有红色节点，将兄弟节点染红，即这个分支的黑节点数量减一，向上传递，重新地递归考虑上述情况。  //这一情况未完成
+            ！！！！需要重写旋转平衡函数
+*/
+
+
 RBTreeNode* RB_tree::delete_black_node(RBTreeNode* root,del_stat_t &stat)
 {
-    if(NULL!=root->left_child) 
+    if(NULL!=root->left_child)
     {
         cout<<"root="<<root->key<<endl;
         cout<<"delete black node error!!"<<endl;
     }
-    /*case1:The deleted node's  father is red,just flip can keep balance.*/
+    /*case1:The deleted node's  father is red.*/
     if(is_red(root))
     {
         root=flip(root);
@@ -251,8 +290,9 @@ RBTreeNode* RB_tree::delete_black_node(RBTreeNode* root,del_stat_t &stat)
             // if(root->right_child->left_child)
             //     root->right_child->left_child->color=RED;
             root=left_local_rotation(root);
-            root->left_child=flip(root->left_child);
-            root->left_child=left_local_rotation(root->left_child);
+            root->left_child=left_rotation_without_change_color(root->left_child);
+            // root->left_child=flip(root->left_child);
+            // root->left_child=left_local_rotation(root->left_child);
             // root->left_child->color=BLACK;
             stat=NOTHING;
         }
@@ -298,10 +338,9 @@ RBTreeNode* RB_tree::fix_left_side_shoter_case(RBTreeNode* root,del_stat_t &stat
     {
         if(is_red(root->right_child))
         {
-            if(root->right_child->left_child)
-                root->right_child->left_child->color=RED;
             root=left_local_rotation(root);
-            root->left_child->color=BLACK;
+            root->left_child=left_rotation_without_change_color(root->left_child);
+
             stat=NOTHING;
         }
         else if(!is_red(root->right_child))
@@ -346,7 +385,7 @@ RBTreeNode* RB_tree::check_stat(RBTreeNode* root,del_stat_t& stat)
         break;
         default:break;
     }
-    return root;   
+    return root;
 }
 
 RBTreeNode* RB_tree::delete_min()
@@ -463,8 +502,8 @@ RB_tree rb;
 int main()
 {
     RBTreeNode* root=NULL;
-    //u32 data[]={9,18,17,6,5,14,3,12,1,4,4,32,45,67,87,65,45,67,6,43,45,67,23,17,84,36,367,4367,7,5,54,54,67,455};
-    u32 data[]={2,4,6,8,10,12,14,16,18};
+    u32 data[]={9,18,17,6,5,14,3,12,1,4,4,32,45,67,87,65,45,67,6,43,45,67,23,17,84,36,367,4367,7,5,54,54,67,455};
+    //u32 data[]={2,4,6,8,10,12,14,16,18};
     for(int i=0;i<sizeof(data)/4;i++)
     {
         root=rb.insert_node(data[i],5);
@@ -472,13 +511,13 @@ int main()
 
     rb.level_traversal(root);
 
-    for(int i=0;i<sizeof(data)/4-1;i++)
-    {
-        root=rb.delete_min();
-    }
+    // for(int i=0;i<sizeof(data)/4-1;i++)
+    // {
+    //     root=rb.delete_min();
+    // }
 
-    // root=rb.delete_min();
-    // root=rb.delete_min();
+     root=rb.delete_min();
+     root=rb.delete_min();
     // root=rb.delete_min();
     // root=rb.delete_min();
     // root=rb.delete_min();

@@ -108,6 +108,11 @@ class RB_tree:public BinaryTree<RBTreeNode>
         
         RBTreeNode* delete_min();
         RBTreeNode* fix_left_side_shoter_case(RBTreeNode* root,del_stat_t &stat);
+
+        RBTreeNode* left_rotation_without_change_color(RBTreeNode* node);
+        RBTreeNode* right_rotation_without_change_color(RBTreeNode* node);
+
+
     private:
         void swap_two_node(RBTreeNode* dst,RBTreeNode* src);
         RBTreeNode* delete_less_than_two_child(RBTreeNode* node,del_stat_t &stat);
